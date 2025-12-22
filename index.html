@@ -3,368 +3,366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sorteo ATD Oculto</title>
+    <title>NetScope v12 - SNR & Suppressor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
+        :root {
+            --bg: #050505; --panel: #0f0f0f; --text: #e0e0e0;
+            --green: #00ff41; --cyan: #00f3ff; --orange: #ffab00; --red: #ff003c; --purple: #bf00ff;
+            --border: 1px solid #333;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2029&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
+            background-color: var(--bg); color: var(--text);
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: -1;
+        .tech-header {
+            width: 100%; max-width: 850px; border-bottom: 2px solid var(--cyan);
+            padding-bottom: 15px; margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        h1 { margin: 0; font-size: 1.4rem; text-transform: uppercase; letter-spacing: 1px; }
+        .badge { background: #222; padding: 4px 10px; border-radius: 4px; border: 1px solid #555; font-size: 0.8rem; }
+
+        .dashboard {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px; width: 100%; max-width: 850px;
         }
 
-        /* --- MODAL GANADOR --- */
-        #modal-ganador {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            backdrop-filter: blur(8px);
+        .card {
+            background: var(--panel); border: var(--border); border-radius: 8px;
+            padding: 20px; position: relative; transition: border-color 0.3s;
         }
 
-        .tarjeta-gigante {
-            background: white;
-            padding: 40px 60px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 0 50px rgba(40, 167, 69, 0.8), 0 0 100px rgba(255, 215, 0, 0.5);
-            border: 5px solid #FFD700;
-            animation: entrada-triunfal 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            max-width: 90%;
-        }
-
-        .texto-ganador { font-size: 3rem; font-weight: 800; color: #28a745; margin-bottom: 10px; display: block; }
-        .titulo-ganador { font-size: 1.5rem; color: #555; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
-
-        @keyframes entrada-triunfal {
-            from { transform: scale(0) rotate(-10deg); opacity: 0; }
-            to { transform: scale(1) rotate(0deg); opacity: 1; }
-        }
-
-        /* --- CONTENEDOR PRINCIPAL --- */
-        .container {
-            background: rgba(255, 255, 255, 0.95); 
-            backdrop-filter: blur(15px); 
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.5);
-            text-align: center;
-            width: 100%;
-            max-width: 900px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex;
-            flex-direction: column;
-            z-index: 1;
-        }
-
-        h1 { color: #1a1a1a; margin-top: 0; }
-        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        #nuevoNombre { flex: 1; padding: 12px; border-radius: 8px; border: 2px solid #ddd; font-size: 16px; }
-        #btnAgregar { background-color: #28a745; color: white; border: none; border-radius: 8px; padding: 0 20px; font-weight: bold; cursor: pointer; }
-
-        #gridTarjetas {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-            min-height: 150px;
-            perspective: 1000px; /* Necesario para el efecto 3D */
-        }
-
-        /* --- ESTILOS DE TARJETA 3D --- */
-        .tarjeta-container {
-            background-color: transparent;
-            min-height: 80px;
-            perspective: 1000px;
-            cursor: default;
-        }
-
-        .tarjeta-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            border-radius: 12px;
-        }
-
-        /* Clase para voltear la carta */
-        .tarjeta-container.flipped .tarjeta-inner {
-            transform: rotateY(180deg);
-        }
-
-        /* Caras de la tarjeta */
-        .cara-frente, .cara-atras {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px;
-            box-sizing: border-box;
-            font-weight: 500;
-        }
-
-        .cara-frente {
-            background-color: white;
-            color: black;
-            border: 3px solid transparent; /* Reserva espacio para borde */
-        }
-
-        .cara-atras {
-            background: linear-gradient(135deg, #2c3e50, #4ca1af);
-            color: white;
-            transform: rotateY(180deg);
-            font-size: 2rem;
-            font-weight: bold;
-            border: 3px solid #fff;
-        }
-
-        /* Botón de eliminar (X) */
-        .btn-eliminar {
-            position: absolute; top: -8px; right: -8px; background: #ff4d4d; color: white;
-            border-radius: 50%; width: 24px; height: 24px; font-size: 14px;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            opacity: 0; transition: opacity 0.2s; border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            z-index: 10;
-        }
-        .tarjeta-container:hover .btn-eliminar { opacity: 1; }
+        .label { font-size: 0.7rem; color: #888; text-transform: uppercase; margin-bottom: 5px; display: block; font-weight: bold; }
+        .big-num { font-size: 2rem; font-weight: bold; }
+        .unit { font-size: 1rem; color: #666; }
         
-        /* Ocultar la X cuando la carta está volteada para no borrar a ciegas */
-        .tarjeta-container.flipped .btn-eliminar { display: none !important; }
+        /* ESTADOS */
+        .status-title { font-size: 1.6rem; font-weight: bold; color: var(--green); margin-bottom: 5px; transition: color 0.3s; }
+        .mod-tag { font-family: monospace; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; color: #aaa; transition: all 0.3s; border: 1px solid transparent; }
+        .status-desc { font-size: 0.9rem; color: #ccc; margin-top: 10px; }
 
-        /* --- ESTILOS DE SELECCIÓN (LUZ) --- */
-        /* Aplicamos el borde iluminado al container o al inner según corresponda */
-        .tarjeta-container.activo .cara-atras {
-            border-color: #f1c40f; /* Amarillo brillante */
-            box-shadow: 0 0 25px rgba(241, 196, 15, 0.8);
-            transform: rotateY(180deg) scale(1.05);
+        /* Badge de Supresor */
+        .suppressor-badge {
+            display: none; 
+            margin-top: 8px; 
+            font-size: 0.75rem; 
+            background: rgba(191,0,255,0.1); 
+            color: var(--purple); 
+            border: 1px solid var(--purple); 
+            padding: 3px 8px; 
+            border-radius: 4px;
+            animation: pulse 1s infinite;
         }
+        @keyframes pulse { 50% { opacity: 0.5; } }
 
-        .controles { display: flex; gap: 15px; margin-top: auto; }
-        button.principal {
-            width: 100%; padding: 15px; font-size: 18px; border: none; border-radius: 10px;
-            cursor: pointer; font-weight: bold; background: linear-gradient(135deg, #6f42c1 0%, #8e44ad 100%);
-            color: white; text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.2s;
+        .controls { display: flex; gap: 15px; width: 100%; max-width: 850px; margin-top: 25px; }
+        button {
+            flex: 1; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 6px; text-transform: uppercase; border: none; font-size: 0.9rem;
         }
-        button.principal:disabled { background: #ccc; cursor: not-allowed; }
-        button.secundario {
-            background: #fff; border: 2px solid #ddd; color: #333; padding: 10px 20px;
-            border-radius: 10px; cursor: pointer; font-weight: bold;
+        .btn-start { background: #222; color: var(--cyan); border: 1px solid var(--cyan); }
+        .btn-report { background: var(--green); color: #000; }
+        .btn-report:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+        canvas { height: 200px !important; width: 100% !important; }
+
+        /* --- MODAL DE REPORTE --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 100;
         }
-        #mensaje { min-height: 25px; margin: 10px 0; font-weight: bold; color: #333; font-size: 1.2em;}
+        .report-paper {
+            background: #111; width: 90%; max-width: 600px;
+            border: 1px solid #444; border-radius: 10px; padding: 30px;
+            animation: slideUp 0.3s ease-out;
+            box-shadow: 0 0 50px rgba(0,255,65,0.1);
+        }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .rep-item { background: #1a1a1a; padding: 10px; border-radius: 5px; }
+        .rep-val { font-size: 1.4rem; font-weight: bold; color: white; }
+        .rep-lbl { font-size: 0.7rem; color: #888; text-transform: uppercase; }
+
+        .conclusion-box { background: rgba(0, 243, 255, 0.05); border-left: 4px solid var(--cyan); padding: 15px; margin-top: 20px; line-height: 1.5; color: #ddd; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-<div id="modal-ganador">
-    <div class="tarjeta-gigante">
-        <div class="titulo-ganador">🏆 El ganador es 🏆</div>
-        <div class="texto-ganador" id="nombre-ganador-grande">NOMBRE AQUÍ</div>
-        <div style="font-size: 3rem;">🎉✨🎈</div>
-    </div>
-</div>
-
-<div class="container">
-    <h1>🎲 Sorteo ATD</h1>
-    
-    <div class="input-group">
-        <input type="text" id="nuevoNombre" placeholder="Nombre..." onkeypress="handleEnter(event)">
-        <button id="btnAgregar" onclick="agregarNombre()">Agregar +</button>
-    </div>
-
-    <div id="mensaje"></div>
-    <div id="gridTarjetas"></div>
-
-    <div class="controles">
-        <button id="btnReiniciar" class="secundario" onclick="restaurarOriginales()">↻ Reset</button>
-        <button id="btnSortear" class="principal" onclick="prepararSorteo()">¡Pulsa para sortear!</button>
-    </div>
-</div>
-
-<script>
-    const listaOriginal = [
-        "Luis Enrique Vélez Ocha", "Rocío Liliana Sánchez Reyes", "Jahiro René Castro Almeida",
-        "Rigoberto Antonio Lozano Ruvalcaba", "Carlos Alberto Vázquez Llamas",
-        "Juan Manuel Madrigal Ríos", "Gabriela Ramírez Quintero", "Carlos Alberto Rosas Moreno"
-    ];
-    let participantes = [...listaOriginal];
-    let sorteando = false;
-
-    window.onload = function() { renderizarTarjetas(); };
-
-    // Renderizar ahora soporta el estado "flipped" (volteado)
-    function renderizarTarjetas(estanVolteadas = false) {
-        const grid = document.getElementById('gridTarjetas');
-        grid.innerHTML = ''; 
-        participantes.forEach((nombre, index) => {
-            // Estructura 3D
-            const container = document.createElement('div');
-            container.className = 'tarjeta-container' + (estanVolteadas ? ' flipped' : '');
-            container.id = `card-container-${index}`;
-
-            const inner = document.createElement('div');
-            inner.className = 'tarjeta-inner';
-
-            // Cara Frente (Nombre)
-            const frente = document.createElement('div');
-            frente.className = 'cara-frente';
-            frente.innerText = nombre;
-
-            // Cara Atras (Interrogación)
-            const atras = document.createElement('div');
-            atras.className = 'cara-atras';
-            atras.innerText = "?";
-
-            // Botón eliminar (Solo visible en el frente por CSS)
-            const btnX = document.createElement('div');
-            btnX.className = 'btn-eliminar'; btnX.innerText = '✕';
-            btnX.onclick = (e) => { e.stopPropagation(); eliminarManual(index); };
-
-            frente.appendChild(btnX);
-            inner.appendChild(frente);
-            inner.appendChild(atras);
-            container.appendChild(inner);
-            grid.appendChild(container);
-        });
-        actualizarEstadoBotones();
-    }
-
-    function agregarNombre() {
-        const input = document.getElementById('nuevoNombre');
-        const nombre = input.value.trim();
-        if (nombre) { participantes.push(nombre); input.value = ''; renderizarTarjetas(); }
-    }
-    function handleEnter(e) { if(e.key === 'Enter') agregarNombre(); }
-    function eliminarManual(index) {
-        if(sorteando) return; 
-        if(confirm(`¿Borrar a "${participantes[index]}"?`)) {
-            participantes.splice(index, 1); renderizarTarjetas();
-        }
-    }
-    function barajarArray() { participantes.sort(() => Math.random() - 0.5); }
-    function restaurarOriginales() {
-        if(confirm("¿Volver a la lista original?")) { participantes = [...listaOriginal]; renderizarTarjetas(); document.getElementById('mensaje').innerText = ""; }
-    }
-    function actualizarEstadoBotones() {
-        const btn = document.getElementById('btnSortear');
-        if(participantes.length < 2) { btn.disabled = true; btn.innerText = "Faltan participantes"; }
-        else { btn.disabled = false; btn.innerText = "¡Pulsa para Sortear!"; }
-    }
-
-    // --- FASE 1: PREPARACIÓN (OCULTAR Y BARAJAR) ---
-    function prepararSorteo() {
-        if (participantes.length < 2) { alert("Necesitas al menos 2 participantes."); return; }
-        sorteando = true;
-        toggleControles(true);
-        document.getElementById('mensaje').innerText = "🙈 Ocultando y barajando...";
-
-        // 1. Voltear cartas
-        const cartas = document.querySelectorAll('.tarjeta-container');
-        cartas.forEach(c => c.classList.add('flipped'));
-
-        // 2. Esperar a que se volteen (0.6s) y luego barajar INTERNAMENTE
-        setTimeout(() => {
-            // Barajamos el array
-            barajarArray();
-            // Re-renderizamos PERO mantenemos el estado volteado.
-            // Esto hace que los nombres cambien de lugar físicamente mientras el usuario solo ve signos de "?"
-            renderizarTarjetas(true); 
+    <div class="modal-overlay" id="reportModal">
+        <div class="report-paper">
+            <h2 style="margin-top:0; color:var(--cyan); border-bottom:1px solid #333; padding-bottom:10px;">REPORTE TÉCNICO</h2>
             
-            // Iniciamos el recorrido de luces
-            comenzarRecorridoLuces();
-        }, 800);
-    }
+            <div class="report-grid">
+                <div class="rep-item">
+                    <div class="rep-lbl">Latencia Promedio</div>
+                    <div class="rep-val" id="repAvg">0 ms</div>
+                </div>
+                <div class="rep-item">
+                    <div class="rep-lbl">SNR Promedio (dB)</div>
+                    <div class="rep-val" id="repSNR" style="color:var(--green)">0 dB</div>
+                </div>
+                <div class="rep-item">
+                    <div class="rep-lbl">Estabilidad (Jitter)</div>
+                    <div class="rep-val" id="repJitter">0 ms</div>
+                </div>
+                <div class="rep-item">
+                    <div class="rep-lbl">Modulación Base</div>
+                    <div class="rep-val" id="repMod">--</div>
+                </div>
+            </div>
 
-    // --- FASE 2: EL RECORRIDO DE LUCES ---
-    function comenzarRecorridoLuces() {
-        document.getElementById('mensaje').innerText = "🎲 Buscando la suerte...";
-        
-        const indiceGanador = Math.floor(Math.random() * participantes.length);
-        const tiempoTotal = 10000; const velocidad = 150; const tiempoInicio = Date.now();
-        let indiceVisualActual = -1; 
-        
-        // Obtenemos referencias nuevas después del re-render
-        let tarjetasDOM = document.querySelectorAll('.tarjeta-container');
-
-        const intervalo = setInterval(() => {
-            if (indiceVisualActual !== -1) tarjetasDOM[indiceVisualActual].classList.remove('activo');
+            <div class="label">CONCLUSIÓN DEL SISTEMA</div>
+            <div class="conclusion-box" id="repConclusion">...</div>
             
-            if (Date.now() - tiempoInicio > tiempoTotal) {
-                clearInterval(intervalo);
-                tarjetasDOM[indiceGanador].classList.add('activo');
-                // Revelar ganador
-                mostrarGanadorModal(participantes[indiceGanador], indiceGanador);
-            } else {
-                let indiceRandom;
-                do { indiceRandom = Math.floor(Math.random() * participantes.length); }
-                while (indiceRandom === indiceVisualActual && participantes.length > 1);
-                indiceVisualActual = indiceRandom;
-                tarjetasDOM[indiceVisualActual].classList.add('activo');
+            <button onclick="closeReport()" style="margin-top:20px; background:#333; color:white; width:100%">CERRAR REPORTE</button>
+        </div>
+    </div>
+
+    <div class="tech-header">
+        <div>
+            <h1>NetScope <span style="color:var(--cyan)">v12 Final</span></h1>
+            <div id="netInfo" style="font-size: 0.8rem; color: #888;">Supresión Activa Habilitada</div>
+        </div>
+        <div class="badge" id="liveStatus">IDLE</div>
+    </div>
+
+    <div class="dashboard">
+        <div class="card" id="cardStatus" style="border-left: 4px solid var(--green);">
+            <span class="label">Calidad de Enlace</span>
+            <div class="status-title" id="mainStatus">Listo</div>
+            <span class="mod-tag" id="modTag">[ PHY: -- ]</span>
+            <div class="status-desc" id="statusDesc">
+                Esperando flujo de datos para análisis.
+            </div>
+            
+            <div id="suppressorBadge" class="suppressor-badge">
+                ⚡ PICO SUPRIMIDO (NO REGISTRADO)
+            </div>
+        </div>
+
+        <div class="card">
+            <span class="label">Telemetría en Vivo</span>
+            <div style="display: flex; justify-content: space-between;">
+                <div>
+                    <div class="big-num" id="pingVal">0 <span class="unit">ms</span></div>
+                    <div class="unit">Ping Real</div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="big-num" id="snrLive">0 <span class="unit">dB</span></div>
+                    <div class="unit">SNR Est.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="grid-column: 1 / -1;">
+            <canvas id="chart"></canvas>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button onclick="startTest()" class="btn-start" id="btnStart">▶ Iniciar Monitor</button>
+        <button onclick="generateReport()" class="btn-report" id="btnReport" disabled>📋 Generar Reporte Final</button>
+    </div>
+
+    <script>
+        let running = false;
+        let timer;
+        let sessionData = { pings: [], snrs: [] }; 
+
+        const ctx = document.getElementById('chart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array(40).fill(''),
+                datasets: [{
+                    data: Array(40).fill(null),
+                    borderColor: '#00f3ff', borderWidth: 2,
+                    backgroundColor: 'rgba(0, 243, 255, 0.05)',
+                    tension: 0.3, fill: true, pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { x: { display: false }, y: { grid: { color: '#222' }, suggestedMax: 100 } },
+                plugins: { legend: { display: false } }, animation: false
             }
-        }, velocidad);
-    }
+        });
 
-    // --- FASE 3: GANADOR Y RESET ---
-    function mostrarGanadorModal(nombreGanador, indexGanador) {
-        const modal = document.getElementById('modal-ganador');
-        const nombreGrande = document.getElementById('nombre-ganador-grande');
+        // --- CÁLCULO DE SNR VIRTUAL ---
+        function calculateSNR(ping, jitter) {
+            // Un SNR excelente en WiFi es >30dB. Malo es <10dB.
+            // Base: 35dB (Ideal)
+            // Penalización: -0.5dB por cada ms de Jitter
+            // Penalización: -0.2dB por cada ms de Ping por encima de 20ms
+            
+            let snr = 35;
+            snr -= (jitter * 0.8); 
+            if (ping > 20) snr -= ((ping - 20) * 0.15);
+            
+            // Límites físicos
+            return Math.max(5, Math.min(40, snr));
+        }
+
+        // --- ALGORITMO PRINCIPAL CON SUPRESOR ---
+        function analyzeLive(currentPing, avgPing) {
+            const fluctuation = Math.abs(currentPing - avgPing);
+            
+            // LÓGICA DEL SUPRESOR DE PICOS:
+            // Si el ping actual es > 100ms Y el promedio histórico es < 60ms,
+            // consideramos que es un error irrelevante.
+            const isSpike = (currentPing > 100 && avgPing < 60);
+
+            // Si hay pico, usamos el PROMEDIO para calcular la modulación, no el pico.
+            // Esto "suprime" el efecto negativo en la calificación.
+            const effectivePing = isSpike ? avgPing : currentPing;
+
+            // 1. Calcular SNR Instantáneo
+            const snr = calculateSNR(effectivePing, fluctuation);
+
+            let res = { 
+                title: "Excelente", 
+                desc: "Señal limpia y fuerte.", 
+                color: "#00ff41", 
+                mod: "256-QAM", 
+                snr: snr,
+                isSuppressed: isSpike 
+            };
+
+            // 2. Escalera de Modulación (Usando valor Efectivo/Suprimido)
+            if (effectivePing <= 50 && snr > 25) {
+                res.mod = "256-QAM"; res.color = "#00ff41";
+            } else if (effectivePing <= 90) {
+                res.mod = "64-QAM"; res.color = "#00f3ff"; res.title = "Muy Buena"; res.desc = "Conexión sólida y veloz.";
+            } else if (effectivePing <= 150) {
+                res.mod = "16-QAM"; res.color = "#ffab00"; res.title = "Regular"; res.desc = "Posible congestión detectada.";
+            } else {
+                res.mod = "QPSK"; res.color = "#ff003c"; res.title = "Crítica"; res.desc = "Modo de alta redundancia activo.";
+            }
+
+            return res;
+        }
+
+        async function loop() {
+            if (!running) return;
+            
+            const start = performance.now();
+            try { await fetch('https://1.1.1.1/cdn-cgi/trace?z=' + Math.random(), { mode: 'no-cors', cache: 'no-store' }); } catch {}
+            const ping = performance.now() - start;
+
+            // Guardar Ping Real (aunque sea pico, para estadística bruta)
+            sessionData.pings.push(ping);
+            
+            const recent = sessionData.pings.slice(-5);
+            const avg = recent.reduce((a,b)=>a+b,0) / recent.length;
+            
+            // Analizar (El supresor actúa aquí dentro)
+            const status = analyzeLive(ping, avg);
+            
+            // Guardar SNR calculado
+            sessionData.snrs.push(status.snr);
+
+            // --- ACTUALIZAR UI ---
+            
+            // Si el supresor está activo, mostramos el valor "suavizado" en grande
+            // para no asustar al usuario, o mantenemos el real? 
+            // Tu pediste "agregar supresor". Visualmente es mejor mostrar el real pero no cambiar el estado.
+            document.getElementById('pingVal').innerText = ping.toFixed(0);
+            document.getElementById('snrLive').innerText = status.snr.toFixed(1);
+            document.getElementById('snrLive').style.color = status.snr > 25 ? "var(--green)" : "var(--orange)";
+
+            const titleEl = document.getElementById('mainStatus');
+            titleEl.innerText = status.title;
+            titleEl.style.color = status.isSuppressed ? "#aaa" : status.color; // Gris si estamos suprimiendo
+            
+            const modTag = document.getElementById('modTag');
+            modTag.innerText = `[ PHY: ${status.mod} ]`;
+            modTag.style.borderColor = status.color;
+            modTag.style.color = status.color;
+            
+            document.getElementById('statusDesc').innerText = status.desc;
+
+            // Visibilidad del Badge SUPRESOR
+            const badge = document.getElementById('suppressorBadge');
+            if (status.isSuppressed) {
+                badge.style.display = 'block';
+                document.getElementById('cardStatus').style.borderLeftColor = "var(--purple)"; // Indicador visual de intervención
+            } else {
+                badge.style.display = 'none';
+                document.getElementById('cardStatus').style.borderLeftColor = status.color;
+            }
+
+            // Gráfica
+            chart.data.datasets[0].data.shift();
+            // Truco visual: Si es pico suprimido, graficamos el promedio para que la linea no salte feo
+            chart.data.datasets[0].data.push(status.isSuppressed ? avg : ping);
+            chart.data.datasets[0].borderColor = status.color;
+            chart.update();
+        }
+
+        function generateReport() {
+            stopTest();
+            if (sessionData.pings.length === 0) return;
+
+            // Promedios Finales
+            const avgPing = sessionData.pings.reduce((a, b) => a + b, 0) / sessionData.pings.length;
+            const avgSNR = sessionData.snrs.reduce((a, b) => a + b, 0) / sessionData.snrs.length;
+            const jitter = sessionData.pings.reduce((acc, curr) => acc + Math.abs(curr - avgPing), 0) / sessionData.pings.length;
+
+            // Determinar Modulación Final
+            let finalMod = "QPSK";
+            let color = "red";
+            if (avgSNR > 25) { finalMod = "256-QAM"; color = "#00ff41"; }
+            else if (avgSNR > 15) { finalMod = "64-QAM"; color = "#00f3ff"; }
+            else if (avgSNR > 10) { finalMod = "16-QAM"; color = "#ffab00"; }
+
+            // Redactar Conclusión
+            let conclusion = "";
+            if (avgSNR > 28) {
+                conclusion = `<strong>EXCELENTE SALUD DE RED (SNR ALTO).</strong><br>Con un SNR promedio de <b>${avgSNR.toFixed(1)} dB</b>, el ruido es insignificante. La red sostuvo modulación ${finalMod}, ideal para cualquier tarea crítica.`;
+            } else if (avgSNR > 20) {
+                conclusion = `<strong>BUEN RENDIMIENTO GENERAL.</strong><br>El SNR de <b>${avgSNR.toFixed(1)} dB</b> indica una conexión limpia. Los picos aislados fueron suprimidos exitosamente por el algoritmo, manteniendo la estabilidad.`;
+            } else {
+                conclusion = `<strong>SEÑAL RUIDOSA DETECTADA.</strong><br>El SNR bajo (<b>${avgSNR.toFixed(1)} dB</b>) sugiere interferencia o lejanía del router. Aunque funcional, la red ha degradado su modulación para evitar pérdida de paquetes.`;
+            }
+
+            // Llenar Modal
+            document.getElementById('repAvg').innerText = avgPing.toFixed(0) + " ms";
+            document.getElementById('repJitter').innerText = jitter.toFixed(1) + " ms";
+            document.getElementById('repSNR').innerText = avgSNR.toFixed(1) + " dB";
+            document.getElementById('repSNR').style.color = color;
+            document.getElementById('repMod').innerText = finalMod;
+            document.getElementById('repMod').style.color = color;
+            document.getElementById('repConclusion').innerHTML = conclusion;
+            document.getElementById('repConclusion').style.borderLeftColor = color;
+
+            document.getElementById('reportModal').style.display = 'flex';
+        }
+
+        function startTest() {
+            if (running) return;
+            running = true; 
+            sessionData = { pings: [], snrs: [] };
+            timer = setInterval(loop, 1000);
+            document.getElementById('btnStart').disabled = true;
+            document.getElementById('btnReport').disabled = false;
+            document.getElementById('liveStatus').innerText = "LIVE";
+            document.getElementById('liveStatus').style.color = "#00ff41";
+            fetch('https://ipapi.co/json/').then(r=>r.json()).then(d=>document.getElementById('netInfo').innerText=`ISP: ${d.org}`).catch(()=>{});
+        }
+
+        function stopTest() {
+            running = false; clearInterval(timer);
+            document.getElementById('btnStart').disabled = false;
+            document.getElementById('liveStatus').innerText = "STOP";
+            document.getElementById('liveStatus').style.color = "#777";
+        }
         
-        nombreGrande.innerText = nombreGanador;
-        modal.style.display = 'flex';
-
-        setTimeout(() => {
-            modal.style.display = 'none';
-            
-            // Eliminar ganador
-            participantes.splice(indexGanador, 1);
-            
-            // Barajar OTRA VEZ para que el orden inicial de la siguiente ronda sea distinto
-            barajarArray();
-            
-            // Mostrar cartas de nuevo (frente)
-            renderizarTarjetas(false); 
-            
-            sorteando = false;
-            toggleControles(false);
-            document.getElementById('mensaje').innerText = `Ganador anterior: ${nombreGanador}`;
-        }, 4000);
-    }
-
-    function toggleControles(desactivar) {
-        document.getElementById('btnSortear').disabled = desactivar;
-        document.getElementById('btnReiniciar').disabled = desactivar;
-        document.getElementById('nuevoNombre').disabled = desactivar;
-    }
-</script>
-
+        function closeReport() { document.getElementById('reportModal').style.display = 'none'; }
+    </script>
 </body>
 </html>
