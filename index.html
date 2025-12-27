@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NetScope v15 - Logic Fix</title>
+    <title>NetScope v16 - Full Report</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
@@ -20,6 +20,7 @@
             display: flex; flex-direction: column; align-items: center;
         }
 
+        /* HEADER & DASHBOARD */
         .tech-header {
             width: 100%; max-width: 850px; border-bottom: 2px solid var(--cyan);
             padding-bottom: 15px; margin-bottom: 20px;
@@ -44,8 +45,6 @@
         
         .status-title { font-size: 1.6rem; font-weight: bold; color: var(--green); margin-bottom: 5px; transition: color 0.3s; }
         .mod-tag { font-family: monospace; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; color: #aaa; transition: all 0.3s; border: 1px solid transparent; }
-        
-        /* DESCRIPCIÓN DINÁMICA */
         .status-desc { font-size: 0.9rem; color: #ccc; margin-top: 10px; min-height: 40px; }
 
         .suppressor-badge {
@@ -60,20 +59,28 @@
         .btn-start { background: #222; color: var(--cyan); border: 1px solid var(--cyan); }
         .btn-report { background: var(--green); color: #000; }
         .btn-report:disabled { background: #333; color: #666; cursor: not-allowed; }
-        
-        /* Estilos PDF (Simplificados para este ejemplo) */
+
+        canvas { height: 200px !important; width: 100% !important; }
+
+        /* --- ESTILOS DEL REPORTE (CON LÍMITES) --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 100; }
-        .report-paper { background: #0f0f0f; width: 90%; max-width: 700px; border: 1px solid #444; padding: 30px; max-height: 90vh; overflow-y: auto; }
+        .report-paper { background: #0f0f0f; width: 90%; max-width: 700px; border: 1px solid #444; padding: 30px; max-height: 90vh; overflow-y: auto; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
         #printableArea { color: #e0e0e0; }
-        .rep-row { background: #1a1a1a; padding: 15px; border-radius: 6px; border-left: 4px solid #444; margin-bottom: 15px; }
-        .scale-track { height: 6px; background: #333; margin: 8px 0; }
+        
+        .rep-row { background: #1a1a1a; padding: 15px; border-radius: 6px; border-left: 4px solid #444; margin-bottom: 15px; page-break-inside: avoid; }
+        .rep-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px; }
+        .scale-track { height: 6px; background: #333; margin: 8px 0; border-radius: 3px; overflow: hidden; }
         .scale-fill { height: 100%; transition: width 0.5s; }
-        .conclusion-box { background: rgba(0, 243, 255, 0.05); border-left: 4px solid var(--cyan); padding: 15px; margin-top: 20px; color: #ddd; }
+        
+        /* RESTAURADO: Textos de Límites */
+        .scale-limits { display: flex; justify-content: space-between; font-size: 0.7rem; color: #666; font-family: monospace; margin-top: 4px; }
+        .limit-good { color: var(--green); }
+        .limit-bad { color: var(--red); }
+
+        .conclusion-box { background: rgba(0, 243, 255, 0.05); border-left: 4px solid var(--cyan); padding: 15px; margin-top: 20px; color: #ddd; font-size: 0.9rem; line-height: 1.5; }
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
         .btn-pdf { background: #fff; color: #000; }
         .btn-close { background: #333; color: #fff; }
-
-        canvas { height: 200px !important; width: 100% !important; }
     </style>
 </head>
 <body>
@@ -81,32 +88,69 @@
     <div class="modal-overlay" id="reportModal">
         <div class="report-paper">
             <div id="printableArea">
-                <h2 style="color:var(--cyan); border-bottom:1px solid #333; padding-bottom:10px;">AUDITORÍA DE RED</h2>
-                <div style="margin-bottom:20px; font-size:0.9rem; color:#888;">
-                    ISP: <span id="repISP" style="color:white; font-weight:bold;">--</span>
-                </div>
-                
-                <div class="rep-row" id="rowPing">
-                    <div style="display:flex; justify-content:space-between;"><span>Latencia</span><b id="repPing" style="color:white">0 ms</b></div>
-                    <div class="scale-track"><div class="scale-fill" id="barPing" style="width:0%"></div></div>
-                </div>
-                <div class="rep-row" id="rowSNR">
-                    <div style="display:flex; justify-content:space-between;"><span>SNR</span><b id="repSNR" style="color:white">0 dB</b></div>
-                    <div class="scale-track"><div class="scale-fill" id="barSNR" style="width:0%"></div></div>
-                </div>
-                <div class="rep-row" id="rowJitter">
-                    <div style="display:flex; justify-content:space-between;"><span>Jitter</span><b id="repJitter" style="color:white">0 ms</b></div>
-                    <div class="scale-track"><div class="scale-fill" id="barJitter" style="width:0%"></div></div>
-                </div>
-                <div class="rep-row">
-                    <span>Modulación: </span><b id="repMod" style="color:var(--cyan)">--</b>
+                <div style="border-bottom:1px solid #333; margin-bottom:20px; padding-bottom:10px; display:flex; justify-content:space-between; align-items:flex-end;">
+                    <h2 style="margin:0; color:var(--cyan);">AUDITORÍA DE RED</h2>
+                    <div style="text-align:right; font-size:0.8rem; color:#888;">
+                        <div id="repISP" style="color:white; font-weight:bold; font-size:1rem;">Detectando...</div>
+                        <div id="repDate">--/--/--</div>
+                    </div>
                 </div>
 
-                <div style="font-size:0.8rem; color:#888; margin-top:15px; text-transform:uppercase; font-weight:bold;">Dictamen Final</div>
+                <div class="rep-row" id="rowPing">
+                    <div class="rep-header">
+                        <span class="label">Latencia Promedio</span>
+                        <b id="repPing" style="color:white; font-size:1.2rem;">0 ms</b>
+                    </div>
+                    <div class="scale-track"><div class="scale-fill" id="barPing" style="width:0%"></div></div>
+                    <div class="scale-limits">
+                        <span class="limit-good">Meta: &lt;50 ms</span>
+                        <span>Aceptable: 100 ms</span>
+                        <span class="limit-bad">Crítico: &gt;150 ms</span>
+                    </div>
+                </div>
+
+                <div class="rep-row" id="rowSNR">
+                    <div class="rep-header">
+                        <span class="label">SNR (Señal/Ruido)</span>
+                        <b id="repSNR" style="color:white; font-size:1.2rem;">0 dB</b>
+                    </div>
+                    <div class="scale-track"><div class="scale-fill" id="barSNR" style="width:0%"></div></div>
+                    <div class="scale-limits">
+                        <span class="limit-bad">Malo: &lt;10 dB</span>
+                        <span>Aceptable: 20 dB</span>
+                        <span class="limit-good">Óptimo: &gt;30 dB</span>
+                    </div>
+                </div>
+
+                <div class="rep-row" id="rowJitter">
+                    <div class="rep-header">
+                        <span class="label">Estabilidad (Jitter)</span>
+                        <b id="repJitter" style="color:white; font-size:1.2rem;">0 ms</b>
+                    </div>
+                    <div class="scale-track"><div class="scale-fill" id="barJitter" style="width:0%"></div></div>
+                    <div class="scale-limits">
+                        <span class="limit-good">Meta: &lt;15 ms</span>
+                        <span>Límite: 30 ms</span>
+                        <span class="limit-bad">Inestable: &gt;50 ms</span>
+                    </div>
+                </div>
+
+                <div class="rep-row" style="border-left-color: #555;">
+                    <div class="rep-header">
+                        <span class="label">Modulación Predominante</span>
+                        <b id="repMod" style="color:var(--cyan); font-size:1.2rem;">--</b>
+                    </div>
+                    <div style="font-size:0.75rem; color:#888; margin-top:5px;">
+                        Esquema de codificación física detectado durante la sesión.
+                    </div>
+                </div>
+
+                <div class="label" style="margin-top:20px;">DICTAMEN TÉCNICO</div>
                 <div class="conclusion-box" id="repConclusion">...</div>
             </div>
+
             <div class="modal-btns">
-                <button onclick="downloadPDF()" class="btn-pdf">⬇ PDF</button>
+                <button onclick="downloadPDF()" class="btn-pdf">⬇ DESCARGAR PDF</button>
                 <button onclick="closeReport()" class="btn-close">CERRAR</button>
             </div>
         </div>
@@ -114,7 +158,7 @@
 
     <div class="tech-header">
         <div>
-            <h1>NetScope <span style="color:var(--cyan)">v15 Fix</span></h1>
+            <h1>NetScope <span style="color:var(--cyan)">v16 Final</span></h1>
             <div id="netInfo" style="font-size: 0.8rem; color: #888;">Detectando ISP...</div>
         </div>
         <div class="badge" id="liveStatus">IDLE</div>
@@ -125,9 +169,7 @@
             <span class="label">Estado en Vivo</span>
             <div class="status-title" id="mainStatus">Listo</div>
             <span class="mod-tag" id="modTag">[ PHY: -- ]</span>
-            
             <div class="status-desc" id="statusDesc">Esperando inicio...</div>
-            
             <div id="suppressorBadge" class="suppressor-badge">⚡ PICO SUPRIMIDO</div>
         </div>
 
@@ -152,7 +194,7 @@
 
     <div class="controls">
         <button onclick="startTest()" class="btn-start" id="btnStart">▶ Iniciar</button>
-        <button onclick="generateReport()" class="btn-report" id="btnReport" disabled>📋 Auditoría</button>
+        <button onclick="generateReport()" class="btn-report" id="btnReport" disabled>📋 Generar Auditoría</button>
     </div>
 
     <script>
@@ -185,7 +227,7 @@
             return Math.max(5, Math.min(40, snr));
         }
 
-        // --- CORRECCIÓN DE LÓGICA DE MENSAJES ---
+        // LÓGICA ESTRICTA CORREGIDA
         function analyzeLive(currentPing, avgPing) {
             const fluctuation = Math.abs(currentPing - avgPing);
             const isSpike = (currentPing > 100 && avgPing < 60);
@@ -194,47 +236,31 @@
 
             let res = { isSuppressed: isSpike, snr: snr };
 
-            // Lógica ESTRICTA de Mensajes (Sin valores por defecto)
-            
-            // CASO 1: EXCELENTE (Ping bajo y SNR alto)
+            // 1. EXCELENTE
             if (effectivePing <= 50 && snr > 25) {
-                res.mod = "256-QAM";
-                res.color = "#00ff41"; // Verde
-                res.title = "Excelente";
-                res.desc = "Latencia mínima y ruido nulo. Ideal para 4K/Gaming.";
+                res.mod = "256-QAM"; res.color = "#00ff41";
+                res.title = "Excelente"; res.desc = "Latencia mínima y ruido nulo. Ideal para 4K/Gaming.";
             
-            // CASO 2: MUY BUENA (Ping aceptable O SNR ligeramente bajo)
+            // 2. MUY BUENA
             } else if (effectivePing <= 90) {
-                res.mod = "64-QAM";
-                res.color = "#00f3ff"; // Cyan
+                res.mod = "64-QAM"; res.color = "#00f3ff";
                 res.title = "Muy Buena";
-                // Aquí el mensaje cambia si el problema es ruido o latencia
-                if (snr < 20) {
-                    res.desc = "Velocidad buena, pero con ligero ruido de fondo.";
-                } else {
-                    res.desc = "Conexión sólida y estable para uso general.";
-                }
+                res.desc = snr < 20 ? "Velocidad buena, ligero ruido de fondo." : "Conexión sólida y estable.";
 
-            // CASO 3: REGULAR (Ping alto)
+            // 3. REGULAR
             } else if (effectivePing <= 150) {
-                res.mod = "16-QAM";
-                res.color = "#ffab00"; // Naranja
-                res.title = "Regular";
-                res.desc = "Latencia perceptible. Puede haber retardo en video/juegos.";
+                res.mod = "16-QAM"; res.color = "#ffab00";
+                res.title = "Regular"; res.desc = "Latencia perceptible. Puede haber retardo.";
 
-            // CASO 4: CRÍTICA
+            // 4. CRÍTICA
             } else {
-                res.mod = "QPSK";
-                res.color = "#ff003c"; // Rojo
-                res.title = "Crítica";
-                res.desc = "Señal muy degradada o saturada. Dificultad para navegar.";
+                res.mod = "QPSK"; res.color = "#ff003c";
+                res.title = "Crítica"; res.desc = "Señal degradada. Dificultad para navegar.";
             }
 
-            // SOBRESCRIBIR SI ES UN PICO SUPRIMIDO
             if (isSpike) {
-                res.title = "Filtrando Pico";
-                res.color = "#bf00ff"; // Púrpura
-                res.desc = "Ignorando inestabilidad momentánea para proteger la medición.";
+                res.title = "Filtrando Pico"; res.color = "#bf00ff";
+                res.desc = "Ignorando inestabilidad momentánea.";
             }
 
             return res;
@@ -249,11 +275,10 @@
             sessionData.pings.push(ping);
             const recent = sessionData.pings.slice(-5);
             const avg = recent.reduce((a,b)=>a+b,0) / recent.length;
-            
             const status = analyzeLive(ping, avg);
             sessionData.snrs.push(status.snr);
 
-            // UI Update
+            // UI Updates
             document.getElementById('pingVal').innerText = ping.toFixed(0);
             document.getElementById('snrLive').innerText = status.snr.toFixed(1);
             
@@ -266,7 +291,6 @@
             modTag.style.color = status.color;
             modTag.style.borderColor = status.color;
             
-            // AQUI SE APLICA LA CORRECCIÓN DEL MENSAJE
             document.getElementById('statusDesc').innerText = status.desc;
 
             const badge = document.getElementById('suppressorBadge');
@@ -288,9 +312,11 @@
             const avgSNR = sessionData.snrs.reduce((a, b) => a + b, 0) / sessionData.snrs.length;
             const jitter = sessionData.pings.reduce((acc, curr) => acc + Math.abs(curr - avgPing), 0) / sessionData.pings.length;
 
+            // ISP & Date
             document.getElementById('repISP').innerText = currentISP;
-            
-            // Barras visuales
+            document.getElementById('repDate').innerText = new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString();
+
+            // PING
             const pingPct = Math.min((avgPing / 150) * 100, 100);
             const barPing = document.getElementById('barPing');
             barPing.style.width = pingPct + "%";
@@ -298,6 +324,7 @@
             document.getElementById('repPing').innerText = avgPing.toFixed(0) + " ms";
             document.getElementById('rowPing').style.borderLeftColor = barPing.style.backgroundColor;
 
+            // SNR
             const snrPct = Math.min((avgSNR / 40) * 100, 100);
             const barSNR = document.getElementById('barSNR');
             barSNR.style.width = snrPct + "%";
@@ -305,6 +332,7 @@
             document.getElementById('repSNR').innerText = avgSNR.toFixed(1) + " dB";
             document.getElementById('rowSNR').style.borderLeftColor = barSNR.style.backgroundColor;
 
+            // JITTER
             const jitPct = Math.min((jitter / 50) * 100, 100);
             const barJit = document.getElementById('barJitter');
             barJit.style.width = jitPct + "%";
@@ -317,13 +345,13 @@
             
             if (avgSNR > 25) { 
                 finalMod = "256-QAM"; color = "var(--green)";
-                conc = "RED ÓPTIMA. El SNR promedio alto confirma una conexión limpia y estable. Apto para tareas críticas.";
+                conc = "RED ÓPTIMA (ZONA VERDE). El SNR promedio alto confirma una conexión limpia y estable. Certificada para tareas críticas.";
             } else if (avgSNR > 15) { 
                 finalMod = "64-QAM"; color = "var(--cyan)";
-                conc = "RED ESTÁNDAR. Rendimiento aceptable. Puede haber variaciones menores en horas pico.";
+                conc = "RED ESTÁNDAR (ZONA AZUL). Rendimiento aceptable. Puede haber variaciones menores en horas pico o si se aleja del router.";
             } else { 
                 finalMod = "16-QAM"; color = "var(--orange)";
-                conc = "RED INESTABLE. Se detectaron niveles altos de ruido o latencia. Revisar infraestructura física.";
+                conc = "RED INESTABLE (ZONA NARANJA). Se detectaron niveles altos de ruido o latencia. Revisar infraestructura física.";
             }
 
             const modEl = document.getElementById('repMod');
