@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NetScope v16 - Full Report</title>
+    <title>NetScope v17 - Reporte Legible</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
@@ -21,37 +21,21 @@
         }
 
         /* HEADER & DASHBOARD */
-        .tech-header {
-            width: 100%; max-width: 850px; border-bottom: 2px solid var(--cyan);
-            padding-bottom: 15px; margin-bottom: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        .tech-header { width: 100%; max-width: 850px; border-bottom: 2px solid var(--cyan); padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         h1 { margin: 0; font-size: 1.4rem; text-transform: uppercase; letter-spacing: 1px; }
         .badge { background: #222; padding: 4px 10px; border-radius: 4px; border: 1px solid #555; font-size: 0.8rem; }
 
-        .dashboard {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px; width: 100%; max-width: 850px;
-        }
-
-        .card {
-            background: var(--panel); border: 1px solid #333; border-radius: 8px;
-            padding: 20px; position: relative; transition: border-color 0.3s;
-        }
-
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; width: 100%; max-width: 850px; }
+        .card { background: var(--panel); border: 1px solid #333; border-radius: 8px; padding: 20px; position: relative; transition: border-color 0.3s; }
         .label { font-size: 0.7rem; color: #888; text-transform: uppercase; margin-bottom: 5px; display: block; font-weight: bold; }
         .big-num { font-size: 2rem; font-weight: bold; }
         .unit { font-size: 1rem; color: #666; }
         
         .status-title { font-size: 1.6rem; font-weight: bold; color: var(--green); margin-bottom: 5px; transition: color 0.3s; }
-        .mod-tag { font-family: monospace; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; color: #aaa; transition: all 0.3s; border: 1px solid transparent; }
+        .mod-tag { font-family: monospace; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; color: #aaa; border: 1px solid transparent; }
         .status-desc { font-size: 0.9rem; color: #ccc; margin-top: 10px; min-height: 40px; }
 
-        .suppressor-badge {
-            display: none; margin-top: 8px; font-size: 0.75rem; 
-            background: rgba(191,0,255,0.1); color: var(--purple); border: 1px solid var(--purple); 
-            padding: 3px 8px; border-radius: 4px; animation: pulse 1s infinite;
-        }
+        .suppressor-badge { display: none; margin-top: 8px; font-size: 0.75rem; background: rgba(191,0,255,0.1); color: var(--purple); border: 1px solid var(--purple); padding: 3px 8px; border-radius: 4px; animation: pulse 1s infinite; }
         @keyframes pulse { 50% { opacity: 0.5; } }
 
         .controls { display: flex; gap: 15px; width: 100%; max-width: 850px; margin-top: 25px; }
@@ -62,44 +46,67 @@
 
         canvas { height: 200px !important; width: 100% !important; }
 
-        /* --- ESTILOS DEL REPORTE (CON LÍMITES) --- */
+        /* --- ESTILOS DEL REPORTE --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 100; }
         .report-paper { background: #0f0f0f; width: 90%; max-width: 700px; border: 1px solid #444; padding: 30px; max-height: 90vh; overflow-y: auto; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
-        #printableArea { color: #e0e0e0; }
         
+        /* Contenedor imprimible */
+        #printableArea { color: #e0e0e0; transition: all 0.1s; }
+        
+        /* Filas del reporte */
         .rep-row { background: #1a1a1a; padding: 15px; border-radius: 6px; border-left: 4px solid #444; margin-bottom: 15px; page-break-inside: avoid; }
         .rep-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px; }
+        
+        /* Elementos que cambian de color */
+        .rep-val-text { color: white; font-weight: bold; font-size: 1.2rem; }
+        .rep-isp-text { color: white; font-weight: bold; font-size: 1rem; }
+
         .scale-track { height: 6px; background: #333; margin: 8px 0; border-radius: 3px; overflow: hidden; }
         .scale-fill { height: 100%; transition: width 0.5s; }
-        
-        /* RESTAURADO: Textos de Límites */
         .scale-limits { display: flex; justify-content: space-between; font-size: 0.7rem; color: #666; font-family: monospace; margin-top: 4px; }
+        
         .limit-good { color: var(--green); }
         .limit-bad { color: var(--red); }
 
         .conclusion-box { background: rgba(0, 243, 255, 0.05); border-left: 4px solid var(--cyan); padding: 15px; margin-top: 20px; color: #ddd; font-size: 0.9rem; line-height: 1.5; }
+        
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
         .btn-pdf { background: #fff; color: #000; }
         .btn-close { background: #333; color: #fff; }
+
+        /* --- MODO IMPRESIÓN (PDF BLANCO) --- */
+        .print-mode {
+            background-color: #ffffff !important;
+            color: #333333 !important;
+            padding: 20px;
+        }
+        .print-mode h2 { color: #000 !important; border-bottom: 2px solid #000 !important; }
+        .print-mode .rep-row { background-color: #f4f4f4 !important; border: 1px solid #ccc !important; }
+        .print-mode .rep-val-text { color: #000000 !important; }
+        .print-mode .rep-isp-text { color: #000000 !important; }
+        .print-mode .scale-track { background-color: #e0e0e0 !important; }
+        .print-mode .conclusion-box { background-color: #e6f7ff !important; color: #000 !important; border-left: 4px solid #000 !important; }
+        .print-mode .scale-limits { color: #555 !important; }
     </style>
 </head>
 <body>
 
     <div class="modal-overlay" id="reportModal">
         <div class="report-paper">
+            
             <div id="printableArea">
                 <div style="border-bottom:1px solid #333; margin-bottom:20px; padding-bottom:10px; display:flex; justify-content:space-between; align-items:flex-end;">
                     <h2 style="margin:0; color:var(--cyan);">AUDITORÍA DE RED</h2>
                     <div style="text-align:right; font-size:0.8rem; color:#888;">
-                        <div id="repISP" style="color:white; font-weight:bold; font-size:1rem;">Detectando...</div>
+                        <div id="repISP" class="rep-isp-text">Detectando...</div>
                         <div id="repDate">--/--/--</div>
                     </div>
                 </div>
 
                 <div class="rep-row" id="rowPing">
                     <div class="rep-header">
-                        <span class="label">Latencia Promedio</span>
-                        <b id="repPing" style="color:white; font-size:1.2rem;">0 ms</b>
+                        <span class="label" style="color:#888;">Latencia Promedio</span>
+                        <b id="repPing" class="rep-val-text">0 ms</b>
                     </div>
                     <div class="scale-track"><div class="scale-fill" id="barPing" style="width:0%"></div></div>
                     <div class="scale-limits">
@@ -111,8 +118,8 @@
 
                 <div class="rep-row" id="rowSNR">
                     <div class="rep-header">
-                        <span class="label">SNR (Señal/Ruido)</span>
-                        <b id="repSNR" style="color:white; font-size:1.2rem;">0 dB</b>
+                        <span class="label" style="color:#888;">SNR (Señal/Ruido)</span>
+                        <b id="repSNR" class="rep-val-text">0 dB</b>
                     </div>
                     <div class="scale-track"><div class="scale-fill" id="barSNR" style="width:0%"></div></div>
                     <div class="scale-limits">
@@ -124,8 +131,8 @@
 
                 <div class="rep-row" id="rowJitter">
                     <div class="rep-header">
-                        <span class="label">Estabilidad (Jitter)</span>
-                        <b id="repJitter" style="color:white; font-size:1.2rem;">0 ms</b>
+                        <span class="label" style="color:#888;">Estabilidad (Jitter)</span>
+                        <b id="repJitter" class="rep-val-text">0 ms</b>
                     </div>
                     <div class="scale-track"><div class="scale-fill" id="barJitter" style="width:0%"></div></div>
                     <div class="scale-limits">
@@ -137,15 +144,15 @@
 
                 <div class="rep-row" style="border-left-color: #555;">
                     <div class="rep-header">
-                        <span class="label">Modulación Predominante</span>
+                        <span class="label" style="color:#888;">Modulación Predominante</span>
                         <b id="repMod" style="color:var(--cyan); font-size:1.2rem;">--</b>
                     </div>
                     <div style="font-size:0.75rem; color:#888; margin-top:5px;">
-                        Esquema de codificación física detectado durante la sesión.
+                        Esquema físico utilizado. A mayor QAM, mayor eficiencia.
                     </div>
                 </div>
 
-                <div class="label" style="margin-top:20px;">DICTAMEN TÉCNICO</div>
+                <div class="label" style="margin-top:20px; color:#888;">DICTAMEN TÉCNICO</div>
                 <div class="conclusion-box" id="repConclusion">...</div>
             </div>
 
@@ -158,7 +165,7 @@
 
     <div class="tech-header">
         <div>
-            <h1>NetScope <span style="color:var(--cyan)">v16 Final</span></h1>
+            <h1>NetScope <span style="color:var(--cyan)">v17 Fix</span></h1>
             <div id="netInfo" style="font-size: 0.8rem; color: #888;">Detectando ISP...</div>
         </div>
         <div class="badge" id="liveStatus">IDLE</div>
@@ -227,42 +234,27 @@
             return Math.max(5, Math.min(40, snr));
         }
 
-        // LÓGICA ESTRICTA CORREGIDA
         function analyzeLive(currentPing, avgPing) {
             const fluctuation = Math.abs(currentPing - avgPing);
             const isSpike = (currentPing > 100 && avgPing < 60);
             const effectivePing = isSpike ? avgPing : currentPing;
             const snr = calculateSNR(effectivePing, fluctuation);
-
             let res = { isSuppressed: isSpike, snr: snr };
 
-            // 1. EXCELENTE
             if (effectivePing <= 50 && snr > 25) {
-                res.mod = "256-QAM"; res.color = "#00ff41";
-                res.title = "Excelente"; res.desc = "Latencia mínima y ruido nulo. Ideal para 4K/Gaming.";
-            
-            // 2. MUY BUENA
+                res.mod = "256-QAM"; res.color = "#00ff41"; res.title = "Excelente"; 
+                res.desc = "Latencia mínima y ruido nulo. Ideal para 4K/Gaming.";
             } else if (effectivePing <= 90) {
-                res.mod = "64-QAM"; res.color = "#00f3ff";
-                res.title = "Muy Buena";
+                res.mod = "64-QAM"; res.color = "#00f3ff"; res.title = "Muy Buena";
                 res.desc = snr < 20 ? "Velocidad buena, ligero ruido de fondo." : "Conexión sólida y estable.";
-
-            // 3. REGULAR
             } else if (effectivePing <= 150) {
-                res.mod = "16-QAM"; res.color = "#ffab00";
-                res.title = "Regular"; res.desc = "Latencia perceptible. Puede haber retardo.";
-
-            // 4. CRÍTICA
+                res.mod = "16-QAM"; res.color = "#ffab00"; res.title = "Regular"; 
+                res.desc = "Latencia perceptible. Puede haber retardo.";
             } else {
-                res.mod = "QPSK"; res.color = "#ff003c";
-                res.title = "Crítica"; res.desc = "Señal degradada. Dificultad para navegar.";
+                res.mod = "QPSK"; res.color = "#ff003c"; res.title = "Crítica"; 
+                res.desc = "Señal degradada. Dificultad para navegar.";
             }
-
-            if (isSpike) {
-                res.title = "Filtrando Pico"; res.color = "#bf00ff";
-                res.desc = "Ignorando inestabilidad momentánea.";
-            }
-
+            if (isSpike) { res.title = "Filtrando Pico"; res.color = "#bf00ff"; res.desc = "Ignorando inestabilidad momentánea."; }
             return res;
         }
 
@@ -278,7 +270,6 @@
             const status = analyzeLive(ping, avg);
             sessionData.snrs.push(status.snr);
 
-            // UI Updates
             document.getElementById('pingVal').innerText = ping.toFixed(0);
             document.getElementById('snrLive').innerText = status.snr.toFixed(1);
             
@@ -288,9 +279,7 @@
             
             const modTag = document.getElementById('modTag');
             modTag.innerText = `[ PHY: ${status.mod} ]`;
-            modTag.style.color = status.color;
-            modTag.style.borderColor = status.color;
-            
+            modTag.style.color = status.color; modTag.style.borderColor = status.color;
             document.getElementById('statusDesc').innerText = status.desc;
 
             const badge = document.getElementById('suppressorBadge');
@@ -298,10 +287,7 @@
             if (status.isSuppressed) { badge.style.display = 'block'; card.style.borderLeftColor = "var(--purple)"; } 
             else { badge.style.display = 'none'; card.style.borderLeftColor = status.color; }
 
-            chart.data.datasets[0].data.shift();
-            chart.data.datasets[0].data.push(status.isSuppressed ? avg : ping);
-            chart.data.datasets[0].borderColor = status.color;
-            chart.update();
+            chart.data.datasets[0].data.shift(); chart.data.datasets[0].data.push(status.isSuppressed ? avg : ping); chart.data.datasets[0].borderColor = status.color; chart.update();
         }
 
         function generateReport() {
@@ -312,11 +298,9 @@
             const avgSNR = sessionData.snrs.reduce((a, b) => a + b, 0) / sessionData.snrs.length;
             const jitter = sessionData.pings.reduce((acc, curr) => acc + Math.abs(curr - avgPing), 0) / sessionData.pings.length;
 
-            // ISP & Date
             document.getElementById('repISP').innerText = currentISP;
             document.getElementById('repDate').innerText = new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString();
 
-            // PING
             const pingPct = Math.min((avgPing / 150) * 100, 100);
             const barPing = document.getElementById('barPing');
             barPing.style.width = pingPct + "%";
@@ -324,7 +308,6 @@
             document.getElementById('repPing').innerText = avgPing.toFixed(0) + " ms";
             document.getElementById('rowPing').style.borderLeftColor = barPing.style.backgroundColor;
 
-            // SNR
             const snrPct = Math.min((avgSNR / 40) * 100, 100);
             const barSNR = document.getElementById('barSNR');
             barSNR.style.width = snrPct + "%";
@@ -332,7 +315,6 @@
             document.getElementById('repSNR').innerText = avgSNR.toFixed(1) + " dB";
             document.getElementById('rowSNR').style.borderLeftColor = barSNR.style.backgroundColor;
 
-            // JITTER
             const jitPct = Math.min((jitter / 50) * 100, 100);
             const barJit = document.getElementById('barJitter');
             barJit.style.width = jitPct + "%";
@@ -340,19 +322,10 @@
             document.getElementById('repJitter').innerText = jitter.toFixed(1) + " ms";
             document.getElementById('rowJitter').style.borderLeftColor = barJit.style.backgroundColor;
 
-            // Modulación Final y Conclusión
             let finalMod = "QPSK"; let color = "var(--red)"; let conc = "";
-            
-            if (avgSNR > 25) { 
-                finalMod = "256-QAM"; color = "var(--green)";
-                conc = "RED ÓPTIMA (ZONA VERDE). El SNR promedio alto confirma una conexión limpia y estable. Certificada para tareas críticas.";
-            } else if (avgSNR > 15) { 
-                finalMod = "64-QAM"; color = "var(--cyan)";
-                conc = "RED ESTÁNDAR (ZONA AZUL). Rendimiento aceptable. Puede haber variaciones menores en horas pico o si se aleja del router.";
-            } else { 
-                finalMod = "16-QAM"; color = "var(--orange)";
-                conc = "RED INESTABLE (ZONA NARANJA). Se detectaron niveles altos de ruido o latencia. Revisar infraestructura física.";
-            }
+            if (avgSNR > 25) { finalMod = "256-QAM"; color = "var(--green)"; conc = "RED ÓPTIMA (ZONA VERDE). Certificada para tareas críticas."; }
+            else if (avgSNR > 15) { finalMod = "64-QAM"; color = "var(--cyan)"; conc = "RED ESTÁNDAR (ZONA AZUL). Funcional con variaciones menores."; }
+            else { finalMod = "16-QAM"; color = "var(--orange)"; conc = "RED INESTABLE (ZONA NARANJA). Revisar infraestructura."; }
 
             const modEl = document.getElementById('repMod');
             modEl.innerText = finalMod; modEl.style.color = color;
@@ -363,8 +336,23 @@
         }
 
         function downloadPDF() {
-            const element = document.getElementById('printableArea');
-            html2pdf().set({ margin: 10, filename: 'NetScope_Report.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, backgroundColor: "#0f0f0f" }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(element).save();
+            // Activar Modo Impresión (Blanco y Negro)
+            const el = document.getElementById('printableArea');
+            el.classList.add('print-mode');
+            
+            // Opciones PDF
+            const opt = {
+                margin: 10,
+                filename: `Auditoria_NetScope_${new Date().toISOString().slice(0,10)}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Generar y luego restaurar modo oscuro
+            html2pdf().set(opt).from(el).save().then(() => {
+                el.classList.remove('print-mode');
+            });
         }
 
         function startTest() {
@@ -380,5 +368,6 @@
     </script>
 </body>
 </html>
+
 
 
