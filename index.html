@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NetScope v17 - Reporte Legible</title>
+    <title>NetScope v18 - Analytics</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
@@ -20,13 +20,20 @@
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* HEADER & DASHBOARD */
-        .tech-header { width: 100%; max-width: 850px; border-bottom: 2px solid var(--cyan); padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .tech-header { width: 100%; max-width: 900px; border-bottom: 2px solid var(--cyan); padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         h1 { margin: 0; font-size: 1.4rem; text-transform: uppercase; letter-spacing: 1px; }
         .badge { background: #222; padding: 4px 10px; border-radius: 4px; border: 1px solid #555; font-size: 0.8rem; }
 
-        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; width: 100%; max-width: 850px; }
-        .card { background: var(--panel); border: 1px solid #333; border-radius: 8px; padding: 20px; position: relative; transition: border-color 0.3s; }
+        .dashboard {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px; width: 100%; max-width: 900px;
+        }
+
+        .card {
+            background: var(--panel); border: 1px solid #333; border-radius: 8px;
+            padding: 20px; position: relative; transition: border-color 0.3s;
+        }
+
         .label { font-size: 0.7rem; color: #888; text-transform: uppercase; margin-bottom: 5px; display: block; font-weight: bold; }
         .big-num { font-size: 2rem; font-weight: bold; }
         .unit { font-size: 1rem; color: #666; }
@@ -38,62 +45,41 @@
         .suppressor-badge { display: none; margin-top: 8px; font-size: 0.75rem; background: rgba(191,0,255,0.1); color: var(--purple); border: 1px solid var(--purple); padding: 3px 8px; border-radius: 4px; animation: pulse 1s infinite; }
         @keyframes pulse { 50% { opacity: 0.5; } }
 
-        .controls { display: flex; gap: 15px; width: 100%; max-width: 850px; margin-top: 25px; }
+        .controls { display: flex; gap: 15px; width: 100%; max-width: 900px; margin-top: 25px; }
         button { flex: 1; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 6px; text-transform: uppercase; border: none; font-size: 0.9rem; }
         .btn-start { background: #222; color: var(--cyan); border: 1px solid var(--cyan); }
         .btn-report { background: var(--green); color: #000; }
         .btn-report:disabled { background: #333; color: #666; cursor: not-allowed; }
 
-        canvas { height: 200px !important; width: 100% !important; }
-
-        /* --- ESTILOS DEL REPORTE --- */
+        /* Report Styles */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 100; }
         .report-paper { background: #0f0f0f; width: 90%; max-width: 700px; border: 1px solid #444; padding: 30px; max-height: 90vh; overflow-y: auto; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
-        
-        /* Contenedor imprimible */
-        #printableArea { color: #e0e0e0; transition: all 0.1s; }
-        
-        /* Filas del reporte */
+        #printableArea { color: #e0e0e0; }
         .rep-row { background: #1a1a1a; padding: 15px; border-radius: 6px; border-left: 4px solid #444; margin-bottom: 15px; page-break-inside: avoid; }
         .rep-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px; }
-        
-        /* Elementos que cambian de color */
-        .rep-val-text { color: white; font-weight: bold; font-size: 1.2rem; }
-        .rep-isp-text { color: white; font-weight: bold; font-size: 1rem; }
-
         .scale-track { height: 6px; background: #333; margin: 8px 0; border-radius: 3px; overflow: hidden; }
         .scale-fill { height: 100%; transition: width 0.5s; }
         .scale-limits { display: flex; justify-content: space-between; font-size: 0.7rem; color: #666; font-family: monospace; margin-top: 4px; }
-        
-        .limit-good { color: var(--green); }
-        .limit-bad { color: var(--red); }
-
+        .limit-good { color: var(--green); } .limit-bad { color: var(--red); }
         .conclusion-box { background: rgba(0, 243, 255, 0.05); border-left: 4px solid var(--cyan); padding: 15px; margin-top: 20px; color: #ddd; font-size: 0.9rem; line-height: 1.5; }
-        
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-pdf { background: #fff; color: #000; }
-        .btn-close { background: #333; color: #fff; }
+        .btn-pdf { background: #fff; color: #000; } .btn-close { background: #333; color: #fff; }
 
-        /* --- MODO IMPRESIÓN (PDF BLANCO) --- */
-        .print-mode {
-            background-color: #ffffff !important;
-            color: #333333 !important;
-            padding: 20px;
-        }
+        /* MODO IMPRESIÓN */
+        .print-mode { background-color: #ffffff !important; color: #333333 !important; padding: 20px; }
         .print-mode h2 { color: #000 !important; border-bottom: 2px solid #000 !important; }
         .print-mode .rep-row { background-color: #f4f4f4 !important; border: 1px solid #ccc !important; }
-        .print-mode .rep-val-text { color: #000000 !important; }
-        .print-mode .rep-isp-text { color: #000000 !important; }
+        .print-mode .rep-val-text { color: #000000 !important; } .print-mode .rep-isp-text { color: #000000 !important; }
         .print-mode .scale-track { background-color: #e0e0e0 !important; }
         .print-mode .conclusion-box { background-color: #e6f7ff !important; color: #000 !important; border-left: 4px solid #000 !important; }
-        .print-mode .scale-limits { color: #555 !important; }
+
+        canvas { width: 100% !important; height: 180px !important; }
     </style>
 </head>
 <body>
 
     <div class="modal-overlay" id="reportModal">
         <div class="report-paper">
-            
             <div id="printableArea">
                 <div style="border-bottom:1px solid #333; margin-bottom:20px; padding-bottom:10px; display:flex; justify-content:space-between; align-items:flex-end;">
                     <h2 style="margin:0; color:var(--cyan);">AUDITORÍA DE RED</h2>
@@ -104,58 +90,31 @@
                 </div>
 
                 <div class="rep-row" id="rowPing">
-                    <div class="rep-header">
-                        <span class="label" style="color:#888;">Latencia Promedio</span>
-                        <b id="repPing" class="rep-val-text">0 ms</b>
-                    </div>
+                    <div class="rep-header"><span class="label" style="color:#888;">Latencia Promedio</span><b id="repPing" class="rep-val-text">0 ms</b></div>
                     <div class="scale-track"><div class="scale-fill" id="barPing" style="width:0%"></div></div>
-                    <div class="scale-limits">
-                        <span class="limit-good">Meta: &lt;50 ms</span>
-                        <span>Aceptable: 100 ms</span>
-                        <span class="limit-bad">Crítico: &gt;150 ms</span>
-                    </div>
+                    <div class="scale-limits"><span class="limit-good">Meta: &lt;50 ms</span><span>Aceptable: 100 ms</span><span class="limit-bad">Crítico: &gt;150 ms</span></div>
                 </div>
 
                 <div class="rep-row" id="rowSNR">
-                    <div class="rep-header">
-                        <span class="label" style="color:#888;">SNR (Señal/Ruido)</span>
-                        <b id="repSNR" class="rep-val-text">0 dB</b>
-                    </div>
+                    <div class="rep-header"><span class="label" style="color:#888;">SNR (Señal/Ruido)</span><b id="repSNR" class="rep-val-text">0 dB</b></div>
                     <div class="scale-track"><div class="scale-fill" id="barSNR" style="width:0%"></div></div>
-                    <div class="scale-limits">
-                        <span class="limit-bad">Malo: &lt;10 dB</span>
-                        <span>Aceptable: 20 dB</span>
-                        <span class="limit-good">Óptimo: &gt;30 dB</span>
-                    </div>
+                    <div class="scale-limits"><span class="limit-bad">Malo: &lt;10 dB</span><span>Aceptable: 20 dB</span><span class="limit-good">Óptimo: &gt;30 dB</span></div>
                 </div>
 
                 <div class="rep-row" id="rowJitter">
-                    <div class="rep-header">
-                        <span class="label" style="color:#888;">Estabilidad (Jitter)</span>
-                        <b id="repJitter" class="rep-val-text">0 ms</b>
-                    </div>
+                    <div class="rep-header"><span class="label" style="color:#888;">Estabilidad (Jitter)</span><b id="repJitter" class="rep-val-text">0 ms</b></div>
                     <div class="scale-track"><div class="scale-fill" id="barJitter" style="width:0%"></div></div>
-                    <div class="scale-limits">
-                        <span class="limit-good">Meta: &lt;15 ms</span>
-                        <span>Límite: 30 ms</span>
-                        <span class="limit-bad">Inestable: &gt;50 ms</span>
-                    </div>
+                    <div class="scale-limits"><span class="limit-good">Meta: &lt;15 ms</span><span>Límite: 30 ms</span><span class="limit-bad">Inestable: &gt;50 ms</span></div>
                 </div>
 
                 <div class="rep-row" style="border-left-color: #555;">
-                    <div class="rep-header">
-                        <span class="label" style="color:#888;">Modulación Predominante</span>
-                        <b id="repMod" style="color:var(--cyan); font-size:1.2rem;">--</b>
-                    </div>
-                    <div style="font-size:0.75rem; color:#888; margin-top:5px;">
-                        Esquema físico utilizado. A mayor QAM, mayor eficiencia.
-                    </div>
+                    <div class="rep-header"><span class="label" style="color:#888;">Modulación Predominante</span><b id="repMod" style="color:var(--cyan); font-size:1.2rem;">--</b></div>
+                    <div style="font-size:0.75rem; color:#888; margin-top:5px;">Esquema físico utilizado. A mayor QAM, mayor eficiencia.</div>
                 </div>
 
                 <div class="label" style="margin-top:20px; color:#888;">DICTAMEN TÉCNICO</div>
                 <div class="conclusion-box" id="repConclusion">...</div>
             </div>
-
             <div class="modal-btns">
                 <button onclick="downloadPDF()" class="btn-pdf">⬇ DESCARGAR PDF</button>
                 <button onclick="closeReport()" class="btn-close">CERRAR</button>
@@ -165,7 +124,7 @@
 
     <div class="tech-header">
         <div>
-            <h1>NetScope <span style="color:var(--cyan)">v17 Fix</span></h1>
+            <h1>NetScope <span style="color:var(--cyan)">v18 Analytics</span></h1>
             <div id="netInfo" style="font-size: 0.8rem; color: #888;">Detectando ISP...</div>
         </div>
         <div class="badge" id="liveStatus">IDLE</div>
@@ -183,19 +142,19 @@
         <div class="card">
             <span class="label">Telemetría</span>
             <div style="display: flex; justify-content: space-between;">
-                <div>
-                    <div class="big-num" id="pingVal">0 <span class="unit">ms</span></div>
-                    <div class="unit">Ping</div>
-                </div>
-                <div style="text-align: right;">
-                    <div class="big-num" id="snrLive">0 <span class="unit">dB</span></div>
-                    <div class="unit">SNR Est.</div>
-                </div>
+                <div><div class="big-num" id="pingVal">0 <span class="unit">ms</span></div><div class="unit">Ping</div></div>
+                <div style="text-align: right;"><div class="big-num" id="snrLive">0 <span class="unit">dB</span></div><div class="unit">SNR Est.</div></div>
             </div>
         </div>
 
-        <div class="card" style="grid-column: 1 / -1;">
-            <canvas id="chart"></canvas>
+        <div class="card">
+            <span class="label">Monitor de Estabilidad (Tiempo)</span>
+            <canvas id="lineChart"></canvas>
+        </div>
+
+        <div class="card">
+            <span class="label">Distribución de Latencia (Tendencia)</span>
+            <canvas id="histChart"></canvas>
         </div>
     </div>
 
@@ -210,12 +169,14 @@
         let sessionData = { pings: [], snrs: [] }; 
         let currentISP = "Desconocido";
 
-        const ctx = document.getElementById('chart').getContext('2d');
-        const chart = new Chart(ctx, {
+        // --- CHART DE LÍNEA ---
+        const ctxLine = document.getElementById('lineChart').getContext('2d');
+        const lineChart = new Chart(ctxLine, {
             type: 'line',
             data: {
                 labels: Array(40).fill(''),
                 datasets: [{
+                    label: 'Ping',
                     data: Array(40).fill(null),
                     borderColor: '#00f3ff', borderWidth: 2, backgroundColor: 'rgba(0, 243, 255, 0.05)',
                     tension: 0.3, fill: true, pointRadius: 0
@@ -224,6 +185,33 @@
             options: {
                 responsive: true, maintainAspectRatio: false,
                 scales: { x: { display: false }, y: { grid: { color: '#222' }, suggestedMax: 100 } },
+                plugins: { legend: { display: false } }, animation: false
+            }
+        });
+
+        // --- NUEVO: CHART DE HISTOGRAMA ---
+        const ctxHist = document.getElementById('histChart').getContext('2d');
+        const histChart = new Chart(ctxHist, {
+            type: 'bar',
+            data: {
+                labels: ['<20ms', '20-50ms', '50-100ms', '100-150ms', '>150ms'],
+                datasets: [{
+                    label: 'Frecuencia',
+                    data: [0, 0, 0, 0, 0],
+                    backgroundColor: [
+                        '#00ff41', // Verde (Excelente)
+                        '#00f3ff', // Cyan (Bueno)
+                        '#ffab00', // Naranja (Regular)
+                        '#ff003c', // Rojo (Malo)
+                        '#bf00ff'  // Púrpura (Muy malo)
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { x: { grid: { display: false }, ticks: { color: '#888', font: {size: 10} } }, y: { display: false } },
                 plugins: { legend: { display: false } }, animation: false
             }
         });
@@ -239,6 +227,7 @@
             const isSpike = (currentPing > 100 && avgPing < 60);
             const effectivePing = isSpike ? avgPing : currentPing;
             const snr = calculateSNR(effectivePing, fluctuation);
+
             let res = { isSuppressed: isSpike, snr: snr };
 
             if (effectivePing <= 50 && snr > 25) {
@@ -254,8 +243,23 @@
                 res.mod = "QPSK"; res.color = "#ff003c"; res.title = "Crítica"; 
                 res.desc = "Señal degradada. Dificultad para navegar.";
             }
+
             if (isSpike) { res.title = "Filtrando Pico"; res.color = "#bf00ff"; res.desc = "Ignorando inestabilidad momentánea."; }
             return res;
+        }
+
+        function updateHistogram(pings) {
+            // Calcular distribución
+            let bins = [0, 0, 0, 0, 0];
+            pings.forEach(p => {
+                if (p < 20) bins[0]++;
+                else if (p < 50) bins[1]++;
+                else if (p < 100) bins[2]++;
+                else if (p < 150) bins[3]++;
+                else bins[4]++;
+            });
+            histChart.data.datasets[0].data = bins;
+            histChart.update();
         }
 
         async function loop() {
@@ -270,16 +274,15 @@
             const status = analyzeLive(ping, avg);
             sessionData.snrs.push(status.snr);
 
+            // UI
             document.getElementById('pingVal').innerText = ping.toFixed(0);
             document.getElementById('snrLive').innerText = status.snr.toFixed(1);
             
             const titleEl = document.getElementById('mainStatus');
-            titleEl.innerText = status.title;
-            titleEl.style.color = status.isSuppressed ? "#aaa" : status.color;
+            titleEl.innerText = status.title; titleEl.style.color = status.isSuppressed ? "#aaa" : status.color;
             
             const modTag = document.getElementById('modTag');
-            modTag.innerText = `[ PHY: ${status.mod} ]`;
-            modTag.style.color = status.color; modTag.style.borderColor = status.color;
+            modTag.innerText = `[ PHY: ${status.mod} ]`; modTag.style.color = status.color; modTag.style.borderColor = status.color;
             document.getElementById('statusDesc').innerText = status.desc;
 
             const badge = document.getElementById('suppressorBadge');
@@ -287,7 +290,14 @@
             if (status.isSuppressed) { badge.style.display = 'block'; card.style.borderLeftColor = "var(--purple)"; } 
             else { badge.style.display = 'none'; card.style.borderLeftColor = status.color; }
 
-            chart.data.datasets[0].data.shift(); chart.data.datasets[0].data.push(status.isSuppressed ? avg : ping); chart.data.datasets[0].borderColor = status.color; chart.update();
+            // Update Line Chart
+            lineChart.data.datasets[0].data.shift();
+            lineChart.data.datasets[0].data.push(status.isSuppressed ? avg : ping);
+            lineChart.data.datasets[0].borderColor = status.color;
+            lineChart.update();
+
+            // Update Histogram (Con todos los datos de la sesión)
+            updateHistogram(sessionData.pings);
         }
 
         function generateReport() {
@@ -301,6 +311,7 @@
             document.getElementById('repISP').innerText = currentISP;
             document.getElementById('repDate').innerText = new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString();
 
+            // PING
             const pingPct = Math.min((avgPing / 150) * 100, 100);
             const barPing = document.getElementById('barPing');
             barPing.style.width = pingPct + "%";
@@ -308,6 +319,7 @@
             document.getElementById('repPing').innerText = avgPing.toFixed(0) + " ms";
             document.getElementById('rowPing').style.borderLeftColor = barPing.style.backgroundColor;
 
+            // SNR
             const snrPct = Math.min((avgSNR / 40) * 100, 100);
             const barSNR = document.getElementById('barSNR');
             barSNR.style.width = snrPct + "%";
@@ -315,6 +327,7 @@
             document.getElementById('repSNR').innerText = avgSNR.toFixed(1) + " dB";
             document.getElementById('rowSNR').style.borderLeftColor = barSNR.style.backgroundColor;
 
+            // JITTER
             const jitPct = Math.min((jitter / 50) * 100, 100);
             const barJit = document.getElementById('barJitter');
             barJit.style.width = jitPct + "%";
@@ -336,23 +349,10 @@
         }
 
         function downloadPDF() {
-            // Activar Modo Impresión (Blanco y Negro)
             const el = document.getElementById('printableArea');
             el.classList.add('print-mode');
-            
-            // Opciones PDF
-            const opt = {
-                margin: 10,
-                filename: `Auditoria_NetScope_${new Date().toISOString().slice(0,10)}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            // Generar y luego restaurar modo oscuro
-            html2pdf().set(opt).from(el).save().then(() => {
-                el.classList.remove('print-mode');
-            });
+            const opt = { margin: 10, filename: `Auditoria_NetScope_${new Date().toISOString().slice(0,10)}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            html2pdf().set(opt).from(el).save().then(() => el.classList.remove('print-mode'));
         }
 
         function startTest() {
@@ -368,6 +368,7 @@
     </script>
 </body>
 </html>
+
 
 
 
